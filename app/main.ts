@@ -3,6 +3,7 @@ import { sharedRequestDataParseFunc } from "./shared/services/sharedRequestDataP
 import { createSharedResponseFunc } from "./shared/services/sharedResponse.js";
 import { createPaddedBoxMessageFunc } from "./shared/visuals/createPaddedBoxMessage.js";
 import type { sharedRequestParsedDataInterface, sharedResponseInterface } from "./shared/interfaces/sharedInterfaces.js";
+import { createSharedResponseLineFunc } from "./shared/services/createsharedResponseLine.js";
 
 console.log("Console logging from the main.ts file. Server code is getting executed.");
 
@@ -28,13 +29,11 @@ const server = net.createServer((socket: net.Socket) => {
     console.log("Headers:", responseData.headers);
     console.log("Body:", responseData.body, "\n");
 
-    const responseLine =
-      responseData.statusLine.httpVersion + " " +
-      responseData.statusLine.statusCode + " " +
-      responseData.statusLine.statusMessage + "\r\n";
+    const responseLine: string = createSharedResponseLineFunc(responseData);
 
     socket.write(responseLine);
-    socket.end(createPaddedBoxMessageFunc(systemMessage));
+    socket.write(createPaddedBoxMessageFunc(systemMessage));
+    socket.end();
     return;
   });
 
