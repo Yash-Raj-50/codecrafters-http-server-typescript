@@ -1,57 +1,40 @@
 import * as net from "net";
+import { sharedRequestDataParseFunc } from "./shared/services/sharedRequestDataParse.js";
+import { createSharedResponseFunc } from "./shared/services/sharedResponse.js";
+import { createPaddedBoxMessageFunc } from "./shared/visuals/createPaddedBoxMessage.js";
+import type { sharedRequestParsedDataInterface, sharedResponseInterface } from "./shared/interfaces/sharedInterfaces.js";
 
 console.log("Console logging from the main.ts file. Server code is getting executed.");
 
-const server = net.createServer((socket) => {
-
+const server = net.createServer((socket: net.Socket) => {
   console.log("\n------------------ New client connected ------------------\n");
 
-  socket.on("data", (data) => {
-
-    // All data received from the client
-    const requestData = data.toString();
-    const metadata = requestData.split("\r\n\r\n")[0];
-    const requestBody = requestData.split("\r\n\r\n")[1] || "";  // Parse body
-
-    const requestParts = metadata.split("\r\n");
-    const [method, requestTarget, httpVersion] = requestParts[0].split(" "); // Parse request line
-    const headers: { [key: string]: string } = {}; // Parse headers
-    for (let i = 1; i < requestParts.length; i++) {
-      const line = requestParts[i];
-      if (line === "") break; // End of headers
-      const [key, value] = line.split(": ");
-      if (key && value) {
-        headers[key] = value;
-      }
-    }
+  socket.on("data", (data: Buffer) => {
+    const parsedRequestData: sharedRequestParsedDataInterface = sharedRequestDataParseFunc(data);
+    const { method, target, httpVersion, headers, requestBody } = parsedRequestData;
 
     console.log("!!! New Request Received !!!");
     console.log("Request Method:", method);
-    console.log("Request Target:", requestTarget);
+    console.log("Request Target:", target);
     console.log("HTTP Version:", httpVersion);
     console.log("Headers:", headers);
     console.log("Request Body:", requestBody, "\n");
 
-    let responseMessage = "";
-    if (requestTarget === "/") {
-      socket.write('HTTP/1.1 200 OK\r\n\r\n');
-      responseMessage = "Request received successfully";
-    } else {
-      socket.write('HTTP/1.1 404 Not Found\r\n\r\n');
-      responseMessage = "Resource not found!";
-    }
+    const { responseData, systemMessage }: { responseData: sharedResponseInterface; systemMessage: string }
+      = createSharedResponseFunc(parsedRequestData);
 
-    const boxPadding = 8;
-    const boxWidth = responseMessage.length + boxPadding * 2;
-    const topBorder = "┌" + "─".repeat(boxWidth - 2) + "┐";
-    const bottomBorder = "└" + "─".repeat(boxWidth - 2) + "┘";
-    const paddedMessage = " ".repeat(boxPadding) + responseMessage + " ".repeat(boxPadding - 2);
+    console.log("Response to be sent -->");
+    console.log("Status Line:", responseData.statusLine);
+    console.log("Headers:", responseData.headers);
+    console.log("Body:", responseData.body, "\n");
 
-    socket.end(`
-      ${topBorder}
-      │${paddedMessage}│
-      ${bottomBorder}
-    `);
+    const responseLine =
+      responseData.statusLine.httpVersion + " " +
+      responseData.statusLine.statusCode + " " +
+      responseData.statusLine.statusMessage + "\r\n";
+
+    socket.write(responseLine);
+    socket.end(createPaddedBoxMessageFunc(systemMessage));
     return;
   });
 
