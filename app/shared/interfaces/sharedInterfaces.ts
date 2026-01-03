@@ -13,7 +13,7 @@ interface sharedResponseInterface {
         statusMessage: string
     },
     headers: { [key: string]: string | number },
-    body: string
+    body: string | number | Buffer | object;
 }
 
 export type { sharedRequestParsedDataInterface, sharedResponseInterface };

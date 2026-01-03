@@ -32,7 +32,7 @@ const server = net.createServer((socket: net.Socket) => {
     const responseLine: string = createSharedResponseLineFunc(responseData);
 
     socket.write(responseLine);
-    socket.write(createPaddedBoxMessageFunc(systemMessage));
+    // socket.write(createPaddedBoxMessageFunc(systemMessage));
     socket.end();
     return;
   });

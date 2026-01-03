@@ -15,7 +15,7 @@ function sharedRequestDataParseFunc(requestData: Buffer): sharedRequestParsedDat
         if (line === "") break; // End of headers
         const [key, value] = line.split(": ");
         if (key && value) {
-            headers[key] = value;
+            headers[key.toLowerCase()] = value;
         }
     }
 
