@@ -2,7 +2,7 @@ interface sharedRequestParsedDataInterface {
     method: string;
     target: string;
     httpVersion: string;
-    headers: { [key: string]: string | number };
+    headers: { [key: string]: string };
     requestBody: string;
 }
 

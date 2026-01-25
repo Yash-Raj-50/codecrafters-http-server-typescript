@@ -1,12 +1,15 @@
 import type { sharedRequestParsedDataInterface, sharedResponseInterface } from "../interfaces/sharedInterfaces";
 import { createResponseHTTP1_1Func } from "../../HTTP_1_1/services/createResponse";
 
-function createSharedResponseFunc(requestData: sharedRequestParsedDataInterface): { responseData: sharedResponseInterface; systemMessage: string } {
+async function createSharedResponseFunc(
+    requestData: sharedRequestParsedDataInterface,
+    args: string[] = [])
+    : Promise<{ responseData: sharedResponseInterface | Promise<sharedResponseInterface>; systemMessage: string; }> {
 
-    let responseData: sharedResponseInterface;
+    let responseData: sharedResponseInterface | Promise<sharedResponseInterface>;
     switch (requestData.httpVersion) {
         case "HTTP/1.1":
-            responseData = createResponseHTTP1_1Func(requestData);
+            responseData = createResponseHTTP1_1Func(requestData, args);
             break;
         case "HTTP/2.0":
             // Future implementation for HTTP/2.0 can be added here
@@ -36,7 +39,7 @@ function createSharedResponseFunc(requestData: sharedRequestParsedDataInterface)
             };
     }
 
-    const systemMessage: string = createSystemMessage(responseData);
+    const systemMessage: string = createSystemMessage(await responseData);
     return { responseData, systemMessage };
 }
 

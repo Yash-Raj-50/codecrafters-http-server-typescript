@@ -1,35 +1,52 @@
 import * as net from "net";
 import { sharedRequestDataParseFunc } from "./shared/services/sharedRequestDataParse.js";
 import { createSharedResponseFunc } from "./shared/services/sharedResponse.js";
-import { createPaddedBoxMessageFunc } from "./shared/visuals/createPaddedBoxMessage.js";
-import type { sharedRequestParsedDataInterface, sharedResponseInterface } from "./shared/interfaces/sharedInterfaces.js";
 import { createSharedResponseLineFunc } from "./shared/services/createsharedResponseLine.js";
+// import { createPaddedBoxMessageFunc } from "./shared/visuals/createPaddedBoxMessage.js";
+import type { sharedRequestParsedDataInterface, sharedResponseInterface } from "./shared/interfaces/sharedInterfaces.js";
+import serverLogger from "./shared/services/serverLogger.js";
 
-console.log("Console logging from the main.ts file. Server code is getting executed.");
+const logger = serverLogger;
+
+logger({
+  data: "Console logging from the main.ts file. Server code is getting executed.",
+  dataKind: "Main", type: "info", level: 0
+});
+
+const args = process.argv.slice(2);
+logger({
+  data: `Command-line arguments: ${args}`,
+  dataKind: "Main", type: "info", level: 0
+});
 
 const server = net.createServer((socket: net.Socket) => {
-  console.log("\n------------------ New client connected ------------------\n");
+  logger({ data: "------------------ New client connected ------------------", dataKind: "Main", type: "info", level: 0 });
 
-  socket.on("data", (data: Buffer) => {
+  socket.on("data", async (data: Buffer) => {
     const parsedRequestData: sharedRequestParsedDataInterface = sharedRequestDataParseFunc(data);
-    const { method, target, httpVersion, headers, requestBody } = parsedRequestData;
 
-    console.log("!!! New Request Received !!!");
-    console.log("Request Method:", method);
-    console.log("Request Target:", target);
-    console.log("HTTP Version:", httpVersion);
-    console.log("Headers:", headers);
-    console.log("Request Body:", requestBody, "\n");
+    logger({
+      data: "!!! New Request Received !!!",
+      dataKind: "Main", type: "info", level: 1
+    });
+    logger({
+      data: parsedRequestData,
+      dataKind: "ParsedRequestData", type: "debug", level: 2
+    });
 
-    const { responseData, systemMessage }: { responseData: sharedResponseInterface; systemMessage: string }
-      = createSharedResponseFunc(parsedRequestData);
+    const { responseData, systemMessage }: { responseData: sharedResponseInterface | Promise<sharedResponseInterface>; systemMessage: string }
+      = await createSharedResponseFunc(parsedRequestData, args);
 
-    console.log("Response to be sent -->");
-    console.log("Status Line:", responseData.statusLine);
-    console.log("Headers:", responseData.headers);
-    console.log("Body:", responseData.body, "\n");
+    logger({
+      data: "Response to be sent -->",
+      dataKind: "Main", type: "info", level: 1
+    });
+    logger({
+      data: responseData,
+      dataKind: "ResponseData", type: "debug", level: 2
+    });
 
-    const responseLine: string = createSharedResponseLineFunc(responseData);
+    const responseLine: string = createSharedResponseLineFunc(await responseData);
 
     socket.write(responseLine);
     // socket.write(createPaddedBoxMessageFunc(systemMessage));
@@ -38,21 +55,33 @@ const server = net.createServer((socket: net.Socket) => {
   });
 
   socket.on("end", () => {
-    console.log("------------------ Client disconnected ------------------\n");
+    logger({
+      data: "------------------ Client disconnected ------------------",
+      dataKind: "Main", type: "info", level: 0
+    });
   });
 
   socket.on("error", (err) => {
-    console.error("!!!!!!!!!!! Socket error: \n", err, "\n!!!!!!!!!!!");
+    logger({
+      data: `!!!!!!!!!!! Socket error: \n${err}\n!!!!!!!!!!!`,
+      dataKind: "Main", type: "error", level: 2
+    });
   });
 });
 
 
 server.on("error", (err) => {
-  console.error("Server error:", err);
+  logger({
+    data: `!!!!!!!!!!! Server error: \n${err}\n!!!!!!!!!!!`,
+    dataKind: "Main", type: "error", level: 3
+  });
 });
 
 server.listen(4221, "localhost", () => {
-  console.log("Server is listening on port 4221");
+  logger({
+    data: "Server is listening on port 4221",
+    dataKind: "Main", type: "info", level: 0
+  });
 });
 
 
