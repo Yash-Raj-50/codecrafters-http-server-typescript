@@ -6,7 +6,7 @@ const supportedCompressions = [
     // Future compression algorithms can be added here
 ];
 
-export function compressResponse(
+export function httpCompression(
     requestHeaders: { [key: string]: string },
     responseData: sharedResponseInterface,
 ): sharedResponseInterface {
@@ -18,7 +18,6 @@ export function compressResponse(
                     responseData.headers["Content-Encoding"] = compression;
                     break;
                 default:
-                    // Future compression algorithms can be handled here
                     break;
             }
             break; // Apply only the first supported compression

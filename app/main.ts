@@ -1,10 +1,10 @@
 import * as net from "net";
-import { sharedRequestDataParseFunc } from "./shared/services/sharedRequestDataParse.js";
-import { createSharedResponseFunc } from "./shared/services/sharedResponse.js";
-import { createSharedResponseLineFunc } from "./shared/services/createsharedResponseLine.js";
-// import { createPaddedBoxMessageFunc } from "./shared/visuals/createPaddedBoxMessage.js";
-import type { sharedRequestParsedDataInterface, sharedResponseInterface } from "./shared/interfaces/sharedInterfaces.js";
-import serverLogger from "./shared/services/serverLogger.js";
+import { sharedRequestDataParseFunc } from "./shared/services/sharedRequestDataParse.ts";
+import { createSharedResponseFunc } from "./shared/services/sharedResponse.ts";
+import { createSharedResponseLineFunc } from "./shared/services/createsharedResponseLine.ts";
+// import { createPaddedBoxMessageFunc } from "./shared/visuals/createPaddedBoxMessage.ts";
+import type { sharedRequestParsedDataInterface, sharedResponseInterface } from "./shared/interfaces/sharedInterfaces.ts";
+import serverLogger from "./shared/services/serverLogging.ts";
 
 const logger = serverLogger;
 

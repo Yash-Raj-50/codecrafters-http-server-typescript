@@ -1,6 +1,6 @@
 import type { sharedRequestParsedDataInterface, sharedResponseInterface } from "../interfaces/sharedInterfaces";
 import { createResponseHTTP1_1Func } from "../../HTTP_1_1/services/createResponse";
-import { compressResponse } from "./compressResponse";
+import { httpCompression } from "./httpCompression";
 
 async function createSharedResponseFunc(
     requestData: sharedRequestParsedDataInterface,
@@ -11,7 +11,7 @@ async function createSharedResponseFunc(
     switch (requestData.httpVersion) {
         case "HTTP/1.1":
             const responseData = createResponseHTTP1_1Func(requestData, args);
-            response = compressResponse(requestData.headers, await responseData);
+            response = httpCompression(requestData.headers, await responseData);
             break;
         case "HTTP/2.0":
             // Future implementation for HTTP/2.0 can be added here
