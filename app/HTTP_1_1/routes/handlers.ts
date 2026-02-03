@@ -58,7 +58,7 @@ const handleUserAgent: RouteHandler = (requestData, args) => {
 };
 
 const handleFileServer: RouteHandler = async (requestData, args, params) => {
-    const filePath = params?.filePath || "";
+    const filename = params?.filename || "";
     let status_code = 200,
         message = "OK",
         body: Buffer | string | undefined;
@@ -69,7 +69,7 @@ const handleFileServer: RouteHandler = async (requestData, args, params) => {
     } else {
         const directoryIndex = args.indexOf("--directory") + 1;
         const directoryPath = args[directoryIndex];
-        const fullPath = require("path").join(directoryPath, filePath);
+        const fullPath = require("path").join(directoryPath, filename);
         const file = Bun.file(fullPath);
         if (await file.exists()) {
             status_code = 200;
