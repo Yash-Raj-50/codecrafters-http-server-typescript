@@ -1,19 +1,21 @@
 import type { sharedRequestParsedDataInterface, sharedResponseInterface } from "../interfaces/sharedInterfaces";
 import { createResponseHTTP1_1Func } from "../../HTTP_1_1/services/createResponse";
+import { compressResponse } from "./compressResponse";
 
 async function createSharedResponseFunc(
     requestData: sharedRequestParsedDataInterface,
     args: string[] = [])
-    : Promise<{ responseData: sharedResponseInterface | Promise<sharedResponseInterface>; systemMessage: string; }> {
+    : Promise<{ response: sharedResponseInterface | Promise<sharedResponseInterface>; systemMessage: string; }> {
 
-    let responseData: sharedResponseInterface | Promise<sharedResponseInterface>;
+    let response: sharedResponseInterface | Promise<sharedResponseInterface>;
     switch (requestData.httpVersion) {
         case "HTTP/1.1":
-            responseData = createResponseHTTP1_1Func(requestData, args);
+            const responseData = createResponseHTTP1_1Func(requestData, args);
+            response = compressResponse(requestData.headers, await responseData);
             break;
         case "HTTP/2.0":
             // Future implementation for HTTP/2.0 can be added here
-            responseData = {
+            response = {
                 statusLine: {
                     httpVersion: "HTTP/1.1",
                     statusCode: 400,
@@ -26,7 +28,7 @@ async function createSharedResponseFunc(
             };
             break;
         default:
-            responseData = {
+            response = {
                 statusLine: {
                     httpVersion: "HTTP/1.1",
                     statusCode: 400,
@@ -39,35 +41,37 @@ async function createSharedResponseFunc(
             };
     }
 
-    const systemMessage: string = createSystemMessage(await responseData);
-    return { responseData, systemMessage };
+    return { response, systemMessage: "" };
+
+    // const systemMessage: string = createSystemMessage(await response);
+    // return { response, systemMessage };
 }
 
-function createSystemMessage(responseData: sharedResponseInterface): string {
-    let systemMessage = "";
-    if (responseData.statusLine.statusCode === 200) {
-        systemMessage = "200 OK - Resource served successfully";
-        systemMessage += '\n Body: ' + responseData.body;
-    } else if (responseData.statusLine.statusCode === 404) {
-        systemMessage = "404 Not Found - Resource not found";
-        systemMessage += '\n Body: ' + responseData.body;
-    } else if (Math.floor(responseData.statusLine.statusCode / 100) === 1) {
-        systemMessage = `${responseData.statusLine.statusCode} ${responseData.statusLine.statusMessage} - Informational response`;
-        systemMessage += '\n Body: ' + responseData.body;
-    } else if (Math.floor(responseData.statusLine.statusCode / 100) === 3) {
-        systemMessage = `${responseData.statusLine.statusCode} ${responseData.statusLine.statusMessage} - Resource redirected`;
-        systemMessage += '\n Body: ' + responseData.body;
-    } else if (Math.floor(responseData.statusLine.statusCode / 100) === 4) {
-        systemMessage = `${responseData.statusLine.statusCode} ${responseData.statusLine.statusMessage} - An error occurred`;
-        systemMessage += '\n Body: ' + responseData.body;
-    } else if (Math.floor(responseData.statusLine.statusCode / 100) === 5) {
-        systemMessage = `${responseData.statusLine.statusCode} ${responseData.statusLine.statusMessage} - Server error occurred`;
-        systemMessage += '\n Body: ' + responseData.body;
-    } else {
-        systemMessage = `${responseData.statusLine.statusCode} ${responseData.statusLine.statusMessage} - Response generated`;
-        systemMessage += '\n Body: ' + responseData.body;
-    }
-    return systemMessage;
-}
+// function createSystemMessage(response: sharedResponseInterface): string {
+//     let systemMessage = "";
+//     if (response.statusLine.statusCode === 200) {
+//         systemMessage = "200 OK - Resource served successfully";
+//         systemMessage += '\n Body: ' + response.body;
+//     } else if (response.statusLine.statusCode === 404) {
+//         systemMessage = "404 Not Found - Resource not found";
+//         systemMessage += '\n Body: ' + response.body;
+//     } else if (Math.floor(response.statusLine.statusCode / 100) === 1) {
+//         systemMessage = `${response.statusLine.statusCode} ${response.statusLine.statusMessage} - Informational response`;
+//         systemMessage += '\n Body: ' + response.body;
+//     } else if (Math.floor(response.statusLine.statusCode / 100) === 3) {
+//         systemMessage = `${response.statusLine.statusCode} ${response.statusLine.statusMessage} - Resource redirected`;
+//         systemMessage += '\n Body: ' + response.body;
+//     } else if (Math.floor(response.statusLine.statusCode / 100) === 4) {
+//         systemMessage = `${response.statusLine.statusCode} ${response.statusLine.statusMessage} - An error occurred`;
+//         systemMessage += '\n Body: ' + response.body;
+//     } else if (Math.floor(response.statusLine.statusCode / 100) === 5) {
+//         systemMessage = `${response.statusLine.statusCode} ${response.statusLine.statusMessage} - Server error occurred`;
+//         systemMessage += '\n Body: ' + response.body;
+//     } else {
+//         systemMessage = `${response.statusLine.statusCode} ${response.statusLine.statusMessage} - Response generated`;
+//         systemMessage += '\n Body: ' + response.body;
+//     }
+//     return systemMessage;
+// }
 
 export { createSharedResponseFunc };

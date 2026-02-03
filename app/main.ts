@@ -34,7 +34,7 @@ const server = net.createServer((socket: net.Socket) => {
       dataKind: "ParsedRequestData", type: "debug", level: 2
     });
 
-    const { responseData, systemMessage }: { responseData: sharedResponseInterface | Promise<sharedResponseInterface>; systemMessage: string }
+    const { response, systemMessage }: { response: sharedResponseInterface | Promise<sharedResponseInterface>; systemMessage: string }
       = await createSharedResponseFunc(parsedRequestData, args);
 
     logger({
@@ -42,11 +42,11 @@ const server = net.createServer((socket: net.Socket) => {
       dataKind: "Main", type: "info", level: 1
     });
     logger({
-      data: responseData,
+      data: response,
       dataKind: "ResponseData", type: "debug", level: 2
     });
 
-    const responseLine: string = createSharedResponseLineFunc(await responseData);
+    const responseLine: string = createSharedResponseLineFunc(await response);
 
     socket.write(responseLine);
     // socket.write(createPaddedBoxMessageFunc(systemMessage));
