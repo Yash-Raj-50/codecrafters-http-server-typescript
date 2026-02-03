@@ -11,17 +11,17 @@ export function httpCompression(
     responseData: sharedResponseInterface,
 ): sharedResponseInterface {
 
-    for (const compression of supportedCompressions) {
-        if (requestHeaders["accept-encoding"]?.includes(compression)) {
-            switch (compression) {
+    (requestHeaders["accept-encoding"]?.split(',').map(enc => enc.trim()) || []).forEach(enc => {
+        if (supportedCompressions.includes(enc)) {
+            switch (enc) {
                 case "gzip":
-                    responseData.headers["Content-Encoding"] = compression;
+                    responseData.headers["Content-Encoding"] = enc;
                     break;
                 default:
                     break;
             }
-            break; // Apply only the first supported compression
+            return responseData;
         }
-    }
+    });
     return responseData;
 }
