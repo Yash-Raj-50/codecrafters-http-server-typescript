@@ -85,6 +85,42 @@ const handleFileServer: RouteHandler = async (requestData, args, params) => {
     return createDefaultResponse(status_code, message, body);
 }
 
+const handleFileCreation: RouteHandler = async (requestData, args, params) => {
+    const filename = params?.filename || "";
+    let status_code = 201,
+        message = "Created",
+        body: string | undefined;
+    if (!args.includes("--directory")) {
+        status_code = 403;
+        message = "Forbidden";
+        body = "Directory serving not enabled. Use --directory <path> to enable.";
+    } else if (filename === "") {
+        status_code = 400;
+        message = "Bad Request";
+        body = "Filename not provided in the URL.";
+    } else if (requestData.headers['content-type'] !== 'application/octet-stream') {
+        status_code = 415;
+        message = "Unsupported Media Type";
+        body = "Only 'application/octet-stream' content type is supported for file creation as of now.";
+    } else {
+        const directoryIndex = args.indexOf("--directory") + 1;
+        const directoryPath = args[directoryIndex];
+        const fullPath = require("path").join(directoryPath, filename);
+        try {
+            const writeStream = Bun.write(fullPath, requestData.requestBody as string | Uint8Array | Blob);
+            await writeStream;
+            status_code = 201;
+            message = "Created";
+            body = `File created at ${fullPath}`;
+        } catch (error) {
+            status_code = 500;
+            message = "Internal Server Error";
+            body = `Error creating file: ${error}`;
+        }
+    }
+    return createDefaultResponse(status_code, message, body);
+};
+
 // Route handler: 404 Not Found
 const handleNotFound: RouteHandler = (requestData, args) => {
     const body = "The requested resource was not found on this server.";
@@ -108,6 +144,7 @@ export {
     handleEcho,
     handleUserAgent,
     handleFileServer,
+    handleFileCreation,
     handleNotFound,
     handleMethodNotAllowed,
     handleUnsupportedVersion,

@@ -5,6 +5,7 @@ import {
     handleEcho,
     handleUserAgent,
     handleFileServer,
+    handleFileCreation,
     handleNotFound,
     handleMethodNotAllowed,
     handleUnsupportedVersion,
@@ -43,6 +44,11 @@ const routes: RoutePattern[] = [
         targetPattern: /^\/files\/(.+)$/,
         handler: handleFileServer,
     },
+    {
+        method: "POST",
+        targetPattern: /^\/files\/(.+)$/,
+        handler: handleFileCreation,
+    }
 ];
 
 // Match a target against a pattern
@@ -68,7 +74,7 @@ function matchPattern(
             // Indexed groups
             if (result.length > 1) {
                 params.message = result[1]; // For /echo/:message
-                params.filePath = result[1]; // For /files/:filePath   
+                params.filename = result[1]; // For /files/:filename   
             }
         }
         return { match: true, params };
