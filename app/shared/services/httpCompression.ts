@@ -1,4 +1,3 @@
-// import { gzip } from "zlib";
 import type { sharedResponseInterface } from "../interfaces/sharedInterfaces";
 
 const supportedCompressions = [
@@ -11,7 +10,9 @@ export function httpCompression(
     responseData: sharedResponseInterface,
 ): sharedResponseInterface {
 
-    (requestHeaders["accept-encoding"]?.split(',').map(enc => enc.trim()) || []).forEach(enc => {
+    const encodings = (requestHeaders["accept-encoding"]?.split(',').map(enc => enc.trim()) || []);
+
+    for (const enc of encodings) {
         if (supportedCompressions.includes(enc)) {
             switch (enc) {
                 case "gzip":
@@ -22,8 +23,9 @@ export function httpCompression(
                 default:
                     break;
             }
-            return responseData;
+            break; // Exit after applying compression
         }
-    });
+    }
+
     return responseData;
 }

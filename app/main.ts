@@ -49,6 +49,7 @@ const server = net.createServer((socket: net.Socket) => {
     const responseLine: string = createSharedResponseLineFunc(await response);
 
     socket.write(responseLine);
+    socket.write((await response).body as string); // Write body separately to handle cases where body is compressed or binary data.
     // socket.write(createPaddedBoxMessageFunc(systemMessage));
     socket.end();
     return;

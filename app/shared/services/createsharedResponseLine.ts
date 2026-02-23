@@ -13,10 +13,7 @@ function createSharedResponseLineFunc(responseData: sharedResponseInterface): st
         responseLine += headerKey + ": " + responseData.headers[headerKey] + "\r\n";
     }
     responseLine += "\r\n"; // End of headers
-
-    // Append body
-    responseLine += responseData.body;
-
+    // Body handled in Main
     return responseLine;
 }
 
