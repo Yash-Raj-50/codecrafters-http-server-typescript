@@ -16,6 +16,8 @@ export function httpCompression(
             switch (enc) {
                 case "gzip":
                     responseData.headers["Content-Encoding"] = enc;
+                    responseData.body = Bun.gzipSync(responseData.body as string);
+                    responseData.headers["Content-Length"] = (responseData.body as Buffer).length;
                     break;
                 default:
                     break;
