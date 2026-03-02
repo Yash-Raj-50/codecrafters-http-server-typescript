@@ -51,7 +51,7 @@ const server = net.createServer((socket: net.Socket) => {
     socket.write(responseLine);
     socket.write((await response).body as string); // Write body separately to handle cases where body is compressed or binary data.
     // socket.write(createPaddedBoxMessageFunc(systemMessage));
-    socket.end();
+    // socket.end(); // Not ending the socket here to allow for multiple requests from the same client. The client can decide when to disconnect.
     return;
   });
 
