@@ -51,7 +51,11 @@ const server = net.createServer((socket: net.Socket) => {
     socket.write(responseLine);
     socket.write((await response).body as string); // Write body separately to handle cases where body is compressed or binary data.
     // socket.write(createPaddedBoxMessageFunc(systemMessage));
-    // socket.end(); // Not ending the socket here to allow for multiple requests from the same client. The client can decide when to disconnect.
+
+    if ((await response).headers["connection"] === "close") {
+      socket.end(); // Ending the socket with the request only when asked, otherwise open to allow for multiple requests from the same client. 
+      // Clients decide when to close the connection by sending "Connection: close" header in their request. This allows for better performance by reusing the same connection for multiple requests, which is a key feature of HTTP/1.1.
+    }
     return;
   });
 

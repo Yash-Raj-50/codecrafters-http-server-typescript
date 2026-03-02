@@ -6,11 +6,12 @@ type RouteHandler = (
     params?: Record<string, string>
 ) => sharedResponseInterface | Promise<sharedResponseInterface>;
 
-// Helper function to create a default response object
-function createDefaultResponse(
+// Helper function to create exteneded response object
+function createExtendedResponse(
     statusCode: number = 400,
     statusMessage: string = "Bad Request",
     body: string | number | ArrayBuffer | Buffer | object = "Bad Request",
+    requestHeaders: Record<string, string> = {}
 ): sharedResponseInterface {
     const headers: { [key: string]: string | number } = {};
 
@@ -28,6 +29,10 @@ function createDefaultResponse(
         headers["Content-Length"] = 0;
     }
 
+    if (requestHeaders["connection"]?.toLowerCase() === "close") {
+        headers["connection"] = "close";
+    }
+
     return {
         statusLine: {
             httpVersion: "HTTP/1.1",
@@ -42,19 +47,19 @@ function createDefaultResponse(
 // Route handler: GET /
 const handleRoot: RouteHandler = (requestData, args) => {
     const body = "Welcome to my custom HTTP Server! HTTP/1.1 is working perfectly. More features coming soon.";
-    return createDefaultResponse(200, "OK", body);
+    return createExtendedResponse(200, "OK", body, requestData.headers);
 };
 
 // Route handler: GET /echo/:message
 const handleEcho: RouteHandler = (requestData, args, params) => {
     const message = params?.message || "";
-    return createDefaultResponse(200, "OK", message);
+    return createExtendedResponse(200, "OK", message, requestData.headers);
 };
 
 // Route handler: GET /user-agent
 const handleUserAgent: RouteHandler = (requestData, args) => {
     const userAgent = requestData.headers["user-agent"] || "Unknown";
-    return createDefaultResponse(200, "OK", userAgent);
+    return createExtendedResponse(200, "OK", userAgent, requestData.headers);
 };
 
 const handleFileServer: RouteHandler = async (requestData, args, params) => {
@@ -82,7 +87,7 @@ const handleFileServer: RouteHandler = async (requestData, args, params) => {
             body = "";
         }
     }
-    return createDefaultResponse(status_code, message, body);
+    return createExtendedResponse(status_code, message, body, requestData.headers);
 }
 
 const handleFileCreation: RouteHandler = async (requestData, args, params) => {
@@ -118,25 +123,25 @@ const handleFileCreation: RouteHandler = async (requestData, args, params) => {
             body = `Error creating file: ${error}`;
         }
     }
-    return createDefaultResponse(status_code, message, body);
+    return createExtendedResponse(status_code, message, body, requestData.headers);
 };
 
 // Route handler: 404 Not Found
 const handleNotFound: RouteHandler = (requestData, args) => {
     const body = "The requested resource was not found on this server.";
-    return createDefaultResponse(404, "Not Found", body);
+    return createExtendedResponse(404, "Not Found", body, requestData.headers);
 };
 
 // Route handler: 405 Method Not Allowed
 const handleMethodNotAllowed: RouteHandler = (requestData, args) => {
     const body = "Only GET Method Supported Currently";
-    return createDefaultResponse(405, "Method Not Allowed", body);
+    return createExtendedResponse(405, "Method Not Allowed", body, requestData.headers);
 };
 
 // Route handler: Unsupported HTTP Version
 const handleUnsupportedVersion: RouteHandler = (requestData, args) => {
     const body = "Unsupported HTTP Version Called";
-    return createDefaultResponse(400, "Bad Request", body);
+    return createExtendedResponse(400, "Bad Request", body, requestData.headers);
 };
 
 export {
@@ -148,6 +153,6 @@ export {
     handleNotFound,
     handleMethodNotAllowed,
     handleUnsupportedVersion,
-    createDefaultResponse,
+    createExtendedResponse,
     type RouteHandler,
 };
